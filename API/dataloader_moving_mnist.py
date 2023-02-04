@@ -140,6 +140,7 @@ class MovingMNIST(data.Dataset):
         else:
             output = []
 
+        # shape: [T, C, H, W] (10, 1, 64, 64)
         output = torch.from_numpy(output / 255.0).contiguous().float()
         input = torch.from_numpy(input / 255.0).contiguous().float()
         return input, output

@@ -28,6 +28,8 @@ class Exp:
         T, C, H, W = self.args.in_shape
         if self.args.method == 'SimVP':
             _tmp_input = torch.ones(1, self.args.aft_seq_length, C, H, W).to(self.device)
+            # print('_tmp input shape:', _tmp_input.shape)
+            _tmp_input = torch.ones(1, self.args.pre_seq_length, C, H, W).to(self.device)
             flops = FlopCountAnalysis(self.method.model, _tmp_input)
         elif self.args.method == 'CrevNet':
             _tmp_input = torch.ones(self.args.batch_size, 20, C, H, W).to(self.device)  # crevnet must use the batchsize rather than 1

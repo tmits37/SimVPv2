@@ -20,7 +20,7 @@ def create_parser():
     parser.add_argument('--num_workers', default=8, type=int)
     parser.add_argument('--data_root', default='./data/')
     parser.add_argument('--dataname', default='mmnist',
-                        choices=['mmnist'])
+                        choices=['mmnist', 's4a'])
 
     # method parameters
     parser.add_argument('--method', default='SimVP', choices=[
