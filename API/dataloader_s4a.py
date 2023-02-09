@@ -205,6 +205,13 @@ class NpyPADDataset(data.Dataset):
         ann = np.load(annpath)
 
         img = img[self.start_month:self.end_month]
+        
+        ##################TODO###################################
+        # add class map info infront of the input
+        class_map = np.ones(ann.shape)
+        ann = np.stack([class_map, ann],0)
+        # print('######NEW_ANN_SHAPE#######', ann.shape)
+        #########################################################
 
         if self.transforms:
             img, ann = self.transforms(img, ann)

@@ -112,6 +112,12 @@ class Exp:
         num_updates = 0
         # constants for other methods:
         eta = 1.0  # PredRNN
+        ##### for size test #####
+        train_features, train_labels = next(iter(self.train_loader)) # iter: iterable to iteraator / next: iterator에서 한 칸씩 전진
+        print(f'Features batch shape: {train_features.size()}') # tensor.size() == tensor.shape
+        print(f'Labels batch shape: {train_labels.size()}')
+        # quit()
+        #########################
         for epoch in range(self.config['epoch']):
             loss_mean = 0.0
 
