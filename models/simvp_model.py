@@ -212,6 +212,8 @@ class SimVP_Model(nn.Module):
         mlp_ratio=8., drop=0.0, drop_path=0.0, spatio_kernel_enc=3, spatio_kernel_dec=3, pre_seq_length=10, aft_seq_length=10, **kwargs):
         super(SimVP_Model, self).__init__()
         T, C, H, W = in_shape
+        self.aft_seq_length = aft_seq_length
+        self.conv = nn.Conv2d(T, aft_seq_length, kernel_size=1, stride=1, padding=0)
 
         self.enc = Encoder(C, hid_S, N_S, spatio_kernel_enc)
         self.dec = Decoder(hid_S, C, N_S, spatio_kernel_dec)
@@ -234,5 +236,13 @@ class SimVP_Model(nn.Module):
 
         Y = self.dec(hid, skip)
         Y = Y.reshape(B, T, C, H, W)
+
+        if T != self.aft_seq_length:
+
+            Y = Y.transpose(2, 1)
+            Y = Y.reshape(B*C, T, H, W)
+            Y = self.conv(Y)
+            Y = Y.reshape(B, C, self.aft_seq_length, H, W)
+            Y = Y.transpose(2, 1)
             
         return Y
