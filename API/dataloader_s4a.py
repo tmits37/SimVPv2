@@ -35,6 +35,25 @@ LINEAR_ENCODER[0] = 0
 
 NORMALIZATION_DIV = 10000
 
+def min_max_normalize(image, percentile=2):
+    image = image.astype('float32')
+
+    percent_min = np.percentile(image, percentile, axis=(0,1))
+    percent_max = np.percentile(image, 100-percentile, axis=(0,1))
+
+    mask = np.mean(image, axis=2) != 0
+    if image.shape[1] * image.shape[0] - np.sum(mask) > 0:
+        mdata = np.ma.masked_equal(image, 0, copy=False)
+        mdata = np.ma.filled(mdata, np.nan)
+        percent_min = np.nanpercentile(mdata, percentile, axis=(0, 1))
+
+    norm = (image-percent_min) / (percent_max - percent_min)
+    norm[norm<0] = 0
+    norm[norm>1] = 1
+    norm = norm * mask[:,:,np.newaxis]
+    # norm = (norm * 255).astype('uint8') * mask[:,:,np.newaxis]
+
+    return norm
 
 
 class RandomCrop(object):
@@ -108,6 +127,7 @@ class NpyPADDataset(data.Dataset):
             return_parcels: bool = False,
             mode: str = 'test',
             scenario: int = 1,
+            get_ann: bool = False,
     ) -> None:
         '''
         Args:
@@ -160,6 +180,8 @@ class NpyPADDataset(data.Dataset):
         self.start_month = start_month - 1
         self.end_month = end_month - 1
         self.linear_encoder = LINEAR_ENCODER
+        self.min_max_normalize = True
+        self.get_ann = get_ann
 
         self.mode = mode
         self.scenario = scenario
@@ -218,12 +240,23 @@ class NpyPADDataset(data.Dataset):
 
         return img, ann
 
+    def _normalize(self, img):
+        if self.min_max_normalize:
+            T, C, H, W = img.shape
+            img = img.reshape(T*C, H, W)
+            img = min_max_normalize(img.transpose(1,2,0), percentile=0.5)
+            img = img.transpose(2,0,1)
+            img = img.reshape(T, C, H, W)
+        else:
+            img = np.divide(img, NORMALIZATION_DIV) #  / 10000
+        return img
+
     
     def __getitem__(self, idx: int) -> dict:
         img, ann = self.prepare_train_img(idx)
 
         # Normalize data to range [0-1]
-        img = np.divide(img, NORMALIZATION_DIV) #  / 10000
+        img = self._normalize(img)
 
         # out = {}
         # if self.return_parcels:
@@ -247,9 +280,15 @@ class NpyPADDataset(data.Dataset):
         input = img[:8]
         output = img[8:]
 
-        output = torch.from_numpy(output / 255.0).contiguous().float()
-        input = torch.from_numpy(input / 255.0).contiguous().float()
-        return input, output
+        output = torch.from_numpy(output).contiguous().float()
+        input = torch.from_numpy(input).contiguous().float()
+
+        if self.get_ann:
+            ann = ann.astype('int16')
+            ann = torch.from_numpy(ann).contiguous().long()
+            return input, output, ann
+        else:
+            return input, output
 
     def __len__(self):
         return len(self.img_infos)
