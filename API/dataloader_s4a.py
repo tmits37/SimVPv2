@@ -35,11 +35,12 @@ LINEAR_ENCODER[0] = 0
 
 NORMALIZATION_DIV = 10000
 
+
 def min_max_normalize(image, percentile=2):
     image = image.astype('float32')
 
-    percent_min = np.percentile(image, percentile, axis=(0,1))
-    percent_max = np.percentile(image, 100-percentile, axis=(0,1))
+    percent_min = np.percentile(image, percentile, axis=(0, 1))
+    percent_max = np.percentile(image, 100-percentile, axis=(0, 1))
 
     mask = np.mean(image, axis=2) != 0
     if image.shape[1] * image.shape[0] - np.sum(mask) > 0:
@@ -48,9 +49,9 @@ def min_max_normalize(image, percentile=2):
         percent_min = np.nanpercentile(mdata, percentile, axis=(0, 1))
 
     norm = (image-percent_min) / (percent_max - percent_min)
-    norm[norm<0] = 0
-    norm[norm>1] = 1
-    norm = norm * mask[:,:,np.newaxis]
+    norm[norm < 0] = 0
+    norm[norm > 1] = 1
+    norm = norm * mask[:, :, np.newaxis]
     # norm = (norm * 255).astype('uint8') * mask[:,:,np.newaxis]
 
     return norm
@@ -117,12 +118,12 @@ class NpyPADDataset(data.Dataset):
             root_dir: str = None,
             img_dir: str = None,
             ann_dir: str = None,
-            band_mode: str ='nrgb',
+            band_mode: str = 'nrgb',
             bands: list = None,
             linear_encoder: dict = None,
             start_month: int = 0,
             end_month: int = 12,
-            output_size: tuple = (64,64),
+            output_size: tuple = (64, 64),
             binary_labels: bool = False,
             return_parcels: bool = False,
             mode: str = 'test',
@@ -154,8 +155,9 @@ class NpyPADDataset(data.Dataset):
             self.bands = ['B02', 'B03', 'B04', 'B08']
 
         elif band_mode == 'rdeg':
-            self.bands = ['B02', 'B03', 'B04', 'B08', 'B05', 'B06', 'B07', 'B8A', 'B11', 'B12']
-        
+            self.bands = ['B02', 'B03', 'B04', 'B08',
+                          'B05', 'B06', 'B07', 'B8A', 'B11', 'B12']
+
         else:
             raise RuntimeError
 
@@ -204,10 +206,12 @@ class NpyPADDataset(data.Dataset):
         self.std = 1
 
         print('Rootdir: {}'.format(self.root_dir))
-        print('Scenario: {}, MODE: {}, length of datasets: {}'.format(self.scenario, self.mode, len(self.img_infos)))
-        print('Acquired Data Month: From {} to {}'.format(self.start_month + 1, self.end_month + 1))
-        print(f'Data shape: [T, C, H, W] ({self.end_month - self.start_month}, {len(self.bands)}, {output_size[0]}, {output_size[0]})')
-
+        print('Scenario: {}, MODE: {}, length of datasets: {}'.format(
+            self.scenario, self.mode, len(self.img_infos)))
+        print('Acquired Data Month: From {} to {}'.format(
+            self.start_month + 1, self.end_month + 1))
+        print(
+            f'Data shape: [T, C, H, W] ({self.end_month - self.start_month}, {len(self.bands)}, {output_size[0]}, {output_size[0]})')
 
     def prepare_train_img(self, idx: int) -> dict:
         if self.band_mode == 'nrgb':
@@ -217,7 +221,8 @@ class NpyPADDataset(data.Dataset):
             readpath = os.path.join(self.img_dir, self.img_infos[idx])
             img = np.load(readpath)
 
-            rdegpath = os.path.join(os.path.dirname(self.img_dir), 'rdeg', self.img_infos[idx])
+            rdegpath = os.path.join(os.path.dirname(
+                self.img_dir), 'rdeg', self.img_infos[idx])
             rdeg = np.load(rdegpath)
             img = np.stack([img, rdeg], axis=1)
         else:
@@ -227,11 +232,11 @@ class NpyPADDataset(data.Dataset):
         ann = np.load(annpath)
 
         img = img[self.start_month:self.end_month]
-        
+
         ##################TODO###################################
         # add class map info infront of the input
         class_map = np.ones(ann.shape)
-        ann = np.stack([class_map, ann],0)
+        ann = np.stack([class_map, ann], 0)
         # print('######NEW_ANN_SHAPE#######', ann.shape)
         #########################################################
 
@@ -244,32 +249,32 @@ class NpyPADDataset(data.Dataset):
         if self.min_max_normalize:
             T, C, H, W = img.shape
             img = img.reshape(T*C, H, W)
-            img = min_max_normalize(img.transpose(1,2,0), percentile=0.5)
-            img = img.transpose(2,0,1)
+            img = min_max_normalize(img.transpose(1, 2, 0), percentile=0.5)
+            img = img.transpose(2, 0, 1)
             img = img.reshape(T, C, H, W)
         else:
-            img = np.divide(img, NORMALIZATION_DIV) #  / 10000
+            img = np.divide(img, NORMALIZATION_DIV)  # / 10000
         return img
 
-    
     def __getitem__(self, idx: int) -> dict:
         img, ann = self.prepare_train_img(idx)
 
         # Normalize data to range [0-1]
         img = self._normalize(img)
 
-        # out = {}
-        # if self.return_parcels:
-        #     parcels = ann != 0
-        #     out['parcels'] = parcels
+    ########TODO########
+        out = {}
+        if self.return_parcels:
+            parcels = ann != 0
+            out['parcels'] = parcels
 
-        # if self.binary_labels:
-        #     # Map 0: background class, 1: parcel
-        #     ann[ann != 0] = 1
-        # else:
-        #     # Map labels to 0-len(unique(crop_id)) see config
-        #     # labels = np.vectorize(self.linear_encoder.get)(labels)
-        #     _ = np.zeros_like(ann)
+        if self.binary_labels:
+            # Map 0: background class, 1: parcel
+            ann[ann != 0] = 1
+        else:
+            # Map labels to 0-len(unique(crop_id)) see config
+            # labels = np.vectorize(self.linear_encoder.get)(labels)
+            _ = np.zeros_like(ann)
         #     for crop_id, linear_id in self.linear_encoder.items():
         #         _[ann == crop_id] = linear_id
         #     ann = _
@@ -296,9 +301,10 @@ class NpyPADDataset(data.Dataset):
 
 def load_data(batch_size, val_batch_size, num_workers, data_root):
 
-    train_set = NpyPADDataset(root_dir=data_root, band_mode='nrgb', start_month=1, end_month=13, mode='train')
-    test_set = NpyPADDataset(root_dir=data_root, band_mode='nrgb', start_month=1, end_month=13, mode='val')
-
+    train_set = NpyPADDataset(
+        root_dir=data_root, band_mode='nrgb', start_month=1, end_month=13, mode='train')
+    test_set = NpyPADDataset(
+        root_dir=data_root, band_mode='nrgb', start_month=1, end_month=13, mode='val')
 
     dataloader_train = torch.utils.data.DataLoader(
         train_set, batch_size=batch_size, shuffle=True, pin_memory=True, drop_last=True, num_workers=num_workers)
@@ -312,5 +318,6 @@ def load_data(batch_size, val_batch_size, num_workers, data_root):
 
 if __name__ == '__main__':
     rootdir = '/home/jovyan/shared_volume/data/newdata'
-    dataset =  NpyPADDataset(root_dir=rootdir, band_mode='nrgb', start_month=1, end_month=13, mode='val')
+    dataset = NpyPADDataset(
+        root_dir=rootdir, band_mode='nrgb', start_month=1, end_month=13, mode='val')
     print(dataset[0])
