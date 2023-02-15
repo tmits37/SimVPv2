@@ -233,13 +233,6 @@ class NpyPADDataset(data.Dataset):
 
         img = img[self.start_month:self.end_month]
 
-        ##################TODO###################################
-        # add class map info infront of the input
-        class_map = np.ones(ann.shape)
-        ann = np.stack([class_map, ann], 0)
-        # print('######NEW_ANN_SHAPE#######', ann.shape)
-        #########################################################
-
         if self.transforms:
             img, ann = self.transforms(img, ann)
 
@@ -275,9 +268,9 @@ class NpyPADDataset(data.Dataset):
             # Map labels to 0-len(unique(crop_id)) see config
             # labels = np.vectorize(self.linear_encoder.get)(labels)
             _ = np.zeros_like(ann)
-        #     for crop_id, linear_id in self.linear_encoder.items():
-        #         _[ann == crop_id] = linear_id
-        #     ann = _
+            for crop_id, linear_id in self.linear_encoder.items():
+                _[ann == crop_id] = linear_id
+            ann = _
 
         # # # Map all classes NOT in linear encoder's values to 0
         # ann[~np.isin(ann, list(self.linear_encoder.values()))] = 0
@@ -302,9 +295,9 @@ class NpyPADDataset(data.Dataset):
 def load_data(batch_size, val_batch_size, num_workers, data_root):
 
     train_set = NpyPADDataset(
-        root_dir=data_root, band_mode='nrgb', start_month=1, end_month=13, mode='train')
+        root_dir=data_root, band_mode='nrgb', start_month=1, end_month=13, get_ann=True, mode='train')
     test_set = NpyPADDataset(
-        root_dir=data_root, band_mode='nrgb', start_month=1, end_month=13, mode='val')
+        root_dir=data_root, band_mode='nrgb', start_month=1, end_month=13, get_ann=True, mode='val')
 
     dataloader_train = torch.utils.data.DataLoader(
         train_set, batch_size=batch_size, shuffle=True, pin_memory=True, drop_last=True, num_workers=num_workers)
@@ -319,5 +312,9 @@ def load_data(batch_size, val_batch_size, num_workers, data_root):
 if __name__ == '__main__':
     rootdir = '/home/jovyan/shared_volume/data/newdata'
     dataset = NpyPADDataset(
-        root_dir=rootdir, band_mode='nrgb', start_month=1, end_month=13, mode='val')
-    print(dataset[0])
+        root_dir=rootdir, band_mode='nrgb', start_month=1, end_month=13, get_ann=True, mode='val')
+    
+    dataloader = torch.utils.data.DataLoader(
+        dataset, batch_size=batch_size, shuffle=True, pin_memory=True, drop_last=True, num_workers=num_workers)
+    
+    # print(dataset[0][2])
