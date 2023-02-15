@@ -113,9 +113,17 @@ class Exp:
         # constants for other methods:
         eta = 1.0  # PredRNN
         ##### for size test #####
-        train_features, train_labels = next(iter(self.train_loader)) # iter: iterable to iteraator / next: iterator에서 한 칸씩 전진
-        print(f'Features batch shape: {train_features.size()}') # tensor.size() == tensor.shape
-        print(f'Labels batch shape: {train_labels.size()}')
+        # train_inputs, train_outputs, train_labels,  = next(iter(self.train_loader))
+        # print(f'Inputs batch shape: {train_inputs.size()}')
+        # print(f'Outputs batch shape: {train_outputs.size()}')
+        # print(f'Labels batch shape: {train_labels.size()}')
+        # _label = np.array(train_labels)
+        # label = torch.from_numpy(_label)
+        # label = label.unsqueeze(1)
+        # conv = torch.nn.Conv2d(in_channels=1, out_channels=4, kernel_size=1)
+        # label = conv(label.float())
+        # print(f'NEW Labels batch shape: {label.size()}')
+
         # quit()
         #########################
         for epoch in range(self.config['epoch']):
