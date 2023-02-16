@@ -7,7 +7,7 @@ dataset_parameters = {
     },
     's4a': {
         'in_shape': [9, 4, 64, 64],
-        'pre_seq_length': 9,
+        'pre_seq_length': 8,
         'aft_seq_length': 4,
         'total_length': 12
     },

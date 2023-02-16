@@ -51,7 +51,8 @@ class Exp:
             _tmp_input = torch.ones(1, self.args.total_length, Hp, Wp, Cp).to(self.device)
             _tmp_flag = torch.ones(1, self.args.total_length - 2, Hp, Wp, Cp).to(self.device)
             flops = FlopCountAnalysis(self.method.model, (_tmp_input, _tmp_flag))
-        print_log(flop_count_table(flops))
+        '''RuntimeError 발생'''
+        # print_log(flop_count_table(flops))
 
     def _acquire_device(self):
         if self.args.use_gpu:
