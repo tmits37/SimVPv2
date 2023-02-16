@@ -293,7 +293,7 @@ class NpyPADDataset(data.Dataset):
 
 
 def load_data(batch_size, val_batch_size, num_workers, data_root):
-
+    # get_ann 옵션 추가
     train_set = NpyPADDataset(
         root_dir=data_root, band_mode='nrgb', start_month=1, end_month=13, get_ann=True, mode='train')
     test_set = NpyPADDataset(

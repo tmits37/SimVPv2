@@ -47,12 +47,24 @@ class SimVP(Base_method):
         self.model.train()
 
         train_pbar = tqdm(train_loader)
+        # ann 추출 후 batch_x에 추가
         for batch_x, batch_y, ann in train_pbar:
             self.model_optim.zero_grad()
+
+            # [16, 64, 64] -> [16, 1, 64, 64]
+            # B H W -> B C H W
             ann = ann.unsqueeze(1)
+
+            # [16, 1, 64, 64] -> [16, 4, 64, 64]
             ann = self.conv_c4(ann.float())
+   
+            # [16, 4, 64, 64] -> [16, 1, 4, 64, 64]
+            # B C H W -> B T C H W
             ann = ann.unsqueeze(1)
+
+            # [16, 8, 4, 64, 64] -> [16, 9, 4, 64, 64]
             batch_x = torch.cat([batch_x, ann], dim=1)
+
             batch_x, batch_y = batch_x.to(self.device), batch_y.to(self.device)
             pred_y = self._predict(batch_x)
 
