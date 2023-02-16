@@ -1,5 +1,6 @@
 __pycache__
 /results
+exp_results/
 /figs
 .vscode
 .ipynb_checkpoints
