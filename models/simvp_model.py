@@ -239,9 +239,9 @@ class SimVP_Model(nn.Module):
             self.hid = Mid_GANet(
                 T*hid_S, hid_T, N_T, mlp_ratio=mlp_ratio, drop=drop, drop_path=drop_path)
 
-    ########TODO########
     def forward(self, x_raw):
         B, T, C, H, W = x_raw.shape
+        print('x_raw shape: ', x_raw.shape)
         x = x_raw.view(B*T, C, H, W)
 
         embed, skip = self.enc(x)
@@ -254,6 +254,7 @@ class SimVP_Model(nn.Module):
         Y = self.dec(hid, skip)
         Y = Y.reshape(B, T, C, H, W)
 
+
         if T != self.aft_seq_length:
 
             Y = Y.transpose(2, 1)
@@ -261,5 +262,5 @@ class SimVP_Model(nn.Module):
             Y = self.conv(Y)
             Y = Y.reshape(B, C, self.aft_seq_length, H, W)
             Y = Y.transpose(2, 1)
-
+        print('Y shape: ', Y.shape)
         return Y
