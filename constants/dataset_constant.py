@@ -8,7 +8,8 @@ dataset_parameters = {
     's4a': {
         # in_shape 수정
         # [8, 4, 64, 64] -> [9, 4, 64, 64]
-        'in_shape': [9, 4, 64, 64],
+        # 'in_shape': [9, 4, 64, 64],
+        'in_shape': [8, 4, 64, 64],
         'pre_seq_length': 8,
         'aft_seq_length': 4,
         'total_length': 12

@@ -241,7 +241,6 @@ class SimVP_Model(nn.Module):
 
     def forward(self, x_raw):
         B, T, C, H, W = x_raw.shape
-        print('x_raw shape: ', x_raw.shape)
         x = x_raw.view(B*T, C, H, W)
 
         embed, skip = self.enc(x)
@@ -262,5 +261,4 @@ class SimVP_Model(nn.Module):
             Y = self.conv(Y)
             Y = Y.reshape(B, C, self.aft_seq_length, H, W)
             Y = Y.transpose(2, 1)
-        print('Y shape: ', Y.shape)
         return Y

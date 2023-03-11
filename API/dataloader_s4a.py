@@ -282,7 +282,11 @@ class NpyPADDataset(data.Dataset):
         input = torch.from_numpy(input).contiguous().float()
 
         if self.get_ann:
-            ann = ann.astype('int16')
+            ann = ann.astype('float32')
+            _ = np.zeros_like(ann)
+            for crop_id, linear_id in LINEAR_ENCODER.items():
+                _[ann == crop_id] = linear_id
+            ann = _ / len(SELECTED_CLASSES)
             ann = torch.from_numpy(ann).contiguous().long()
             return input, output, ann
         else:
@@ -295,9 +299,9 @@ class NpyPADDataset(data.Dataset):
 def load_data(batch_size, val_batch_size, num_workers, data_root):
     # get_ann 옵션 추가
     train_set = NpyPADDataset(
-        root_dir=data_root, band_mode='nrgb', start_month=1, end_month=13, get_ann=True, mode='train')
+        root_dir=data_root, band_mode='nrgb', start_month=1, end_month=13, get_ann=False, mode='train')
     test_set = NpyPADDataset(
-        root_dir=data_root, band_mode='nrgb', start_month=1, end_month=13, get_ann=True, mode='val')
+        root_dir=data_root, band_mode='nrgb', start_month=1, end_month=13, get_ann=False, mode='val')
 
     dataloader_train = torch.utils.data.DataLoader(
         train_set, batch_size=batch_size, shuffle=True, pin_memory=True, drop_last=True, num_workers=num_workers)
