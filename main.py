@@ -51,6 +51,7 @@ class Exp:
             _tmp_input = torch.ones(1, self.args.total_length, Hp, Wp, Cp).to(self.device)
             _tmp_flag = torch.ones(1, self.args.total_length - 2, Hp, Wp, Cp).to(self.device)
             flops = FlopCountAnalysis(self.method.model, (_tmp_input, _tmp_flag))
+        '''RuntimeError 발생'''
         print_log(flop_count_table(flops))
 
     def _acquire_device(self):
@@ -112,6 +113,20 @@ class Exp:
         num_updates = 0
         # constants for other methods:
         eta = 1.0  # PredRNN
+        ##### for size test #####
+        # train_inputs, train_outputs, train_labels,  = next(iter(self.train_loader))
+        # print(f'Inputs batch shape: {train_inputs.size()}')
+        # print(f'Outputs batch shape: {train_outputs.size()}')
+        # print(f'Labels batch shape: {train_labels.size()}')
+        # _label = np.array(train_labels)
+        # label = torch.from_numpy(_label)
+        # label = label.unsqueeze(1)
+        # conv = torch.nn.Conv2d(in_channels=1, out_channels=4, kernel_size=1)
+        # label = conv(label.float())
+        # print(f'NEW Labels batch shape: {label.size()}')
+
+        # quit()
+        #########################
         for epoch in range(self.config['epoch']):
             loss_mean = 0.0
 

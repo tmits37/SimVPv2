@@ -14,6 +14,7 @@ class SimVP(Base_method):
         self.model = self._build_model(self.config)
         self.model_optim, self.scheduler = self._init_optimizer(steps_per_epoch)
         self.criterion = nn.MSELoss()
+        # self.conv_c4 = nn.Conv2d(in_channels=1, out_channels=4, kernel_size=1)
 
     def _build_model(self, config):
         return SimVP_Model(**config).to(self.device)
@@ -46,8 +47,27 @@ class SimVP(Base_method):
         self.model.train()
 
         train_pbar = tqdm(train_loader)
+        # ann 추출 후 batch_x에 추가
+        # for batch_x, batch_y, ann in train_pbar:
         for batch_x, batch_y in train_pbar:
             self.model_optim.zero_grad()
+            # [16, 64, 64] -> [16, 1, 64, 64]
+            # B H W -> B C H W
+            # ann = ann.unsqueeze(1)
+
+            # [16, 1, 64, 64] -> [16, 4, 64, 64]
+            # ann = self.conv_c4(ann.float())
+
+            # repeat으로 차원 추가
+            # ann = ann.repeat(1,4,1,1)
+
+            # [16, 4, 64, 64] -> [16, 1, 4, 64, 64]
+            # B C H W -> B T C H W
+            # ann = ann.unsqueeze(1)
+
+            # [16, 8, 4, 64, 64] -> [16, 9, 4, 64, 64]
+            # batch_x = torch.cat([batch_x, ann], dim=1)
+
             batch_x, batch_y = batch_x.to(self.device), batch_y.to(self.device)
             pred_y = self._predict(batch_x)
 
@@ -68,7 +88,14 @@ class SimVP(Base_method):
         self.model.eval()
         preds_lst, trues_lst, total_loss = [], [], []
         vali_pbar = tqdm(vali_loader)
+        # for i, (batch_x, batch_y, ann) in enumerate(vali_pbar):
         for i, (batch_x, batch_y) in enumerate(vali_pbar):
+            # ann = ann.unsqueeze(1)
+            # ann = self.conv_c4(ann.float())
+            # ann = ann.repeat(1,4,1,1)
+
+            # ann = ann.unsqueeze(1)
+            # batch_x = torch.cat([batch_x, ann], dim=1)
             batch_x, batch_y = batch_x.to(self.device), batch_y.to(self.device)
             pred_y = self._predict(batch_x)
             loss = self.criterion(pred_y, batch_y)
@@ -91,7 +118,14 @@ class SimVP(Base_method):
         self.model.eval()
         inputs_lst, trues_lst, preds_lst = [], [], []
         test_pbar = tqdm(test_loader)
+        # for batch_x, batch_y, ann in test_pbar:
         for batch_x, batch_y in test_pbar:
+            # ann = ann.unsqueeze(1)
+            # ann = self.conv_c4(ann.float())
+            # ann = ann.repeat(1,4,1,1)
+
+            # ann = ann.unsqueeze(1)
+            # batch_x = torch.cat([batch_x, ann], dim=1)
             pred_y = self._predict(batch_x.to(self.device))
 
             list(map(lambda data, lst: lst.append(data.detach().cpu().numpy()), [
